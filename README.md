@@ -1,10 +1,16 @@
 # PRIMER-pico-attn
-Code for the paper ``LED down the rabbit hole: exploring the potential of global attention for biomedical multi-document summarisation'' (SDP Workshop at COLING 2022).
+Code for the paper ``LED down the rabbit hole: exploring the potential of global attention for biomedical multi-document summarisation`` (SDP Workshop at COLING 2022).
 
 
 
 # Run script
-## Fewshot
+Script to reproduce the results from the paper is in run_bash 
+
+## Global attention mode
+
+Specify using GLOBAL_ATTENTION_MODE variable in the run script (choose from `doc_sep_only`, `ent_only`, `ent_markers`, `ent_spans`, `ent_markers_spans`).
+
+## Example run script
 
 	DATA_NAME="wallace"
 	GLOBAL_ATTENTION_MODE="ent_markers_spans"
