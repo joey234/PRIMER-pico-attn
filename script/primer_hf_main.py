@@ -63,9 +63,12 @@ class PRIMERSummarizer(pl.LightningModule):
             self.tokenizer.truncation_side == 'left'
 
         #Added special tokens for entity separators
-        
-        self.tokenizer.add_special_tokens({'additional_special_tokens': ["<doc-sep>", "<ent>", "</ent>"]})
-        self.ent_start_id, self.ent_end_id = self.tokenizer.convert_tokens_to_ids(["<ent>", "</ent>"])
+        if args.use_pico:
+            self.tokenizer.add_special_tokens({'additional_special_tokens': ["<doc-sep>", "<ent>", "</ent>"]})
+            self.ent_start_id, self.ent_end_id = self.tokenizer.convert_tokens_to_ids(["<ent>", "</ent>"])
+        else:
+            self.tokenizer.add_special_tokens({'additional_special_tokens': ["<doc-sep>"]})
+            self.docsep_token_id = self.tokenizer.convert_tokens_to_ids("<doc-sep>")
 
         self.model = LEDForConditionalGeneration.from_pretrained(args.primer_path)
         self.model.resize_token_embeddings(len(self.tokenizer))
@@ -75,7 +78,6 @@ class PRIMERSummarizer(pl.LightningModule):
         #     pdb.set_trace()
         self.pad_token_id = self.tokenizer.pad_token_id
         self.use_ddp = args.accelerator == "ddp"
-        self.docsep_token_id = self.tokenizer.convert_tokens_to_ids("<doc-sep>")
 
     
     def set_global_attention(self, input_ids, global_attention_mask):
@@ -114,20 +116,6 @@ class PRIMERSummarizer(pl.LightningModule):
                     mask = torch.arange(s[1]+1, e[1])
                     global_attention_mask[s[0], mask] = 1
                 
-                # print(global_attention_mask)
-
-                # global_attention_mask = global_attention_mask[global_attention_mask!=2]
-                # global_attention_mask = global_attention_mask.view(self.args.batch_size, -1)
-                # input_ids = input_ids[input_ids!=self.ent_start_id]
-                # input_ids = input_ids[input_ids!=self.ent_end_id].view(self.args.batch_size, -1)
-                #global_attention_mask[global_attention_mask==2] = self.tokenizer.pad_token_id
-                #global_attention_mask = global_attention_mask.view(self.args.batch_size, -1)
-                #input_ids = input_ids[input_ids!=self.ent_start_id]
-                #input_ids = input_ids[input_ids!=self.ent_end_id].view(self.args.batch_size, -1)
-
-                #global_attention_mask = global_attention_mask[global_attention_mask!=2]
-                #input_ids = input_ids[input_ids!=self.ent_start_id]
-
             elif self.args.global_attention_mode == "ent_only":
 
                 for s, e in zip(start_indices, end_indices):
@@ -143,10 +131,6 @@ class PRIMERSummarizer(pl.LightningModule):
 
 
     def forward(self, input_ids, output_ids):
-        # input_ids=batch.src
-        # output_ids=batch.tgt
-
-        # pdb.set_trace()
         decoder_input_ids = output_ids[:, :-1]
 
         # get the input ids and attention masks together
@@ -500,7 +484,7 @@ def train(args):
     )
 
     # load datasets
-    '''if args.dataset_name in ["multi_news", "multi_x_science_sum"]:
+    if args.dataset_name in ["multi_news", "multi_x_science_sum"]:
 
         hf_datasets = load_dataset(args.dataset_name, cache_dir=args.data_path)
         train_dataloader = get_dataloader_summ(
@@ -540,33 +524,33 @@ def train(args):
         dataset = [json.loads(l) for l in all_lines]
         valid_dataloader = get_dataloader_summ(
             args, dataset, model.tokenizer, "validation", 0, False
-        )'''
+        )
         #load wallace dataset
+    elif args.dataset_name == "cochrane":
 
-    if args.global_attention_mode == "ent_spans" or args.global_attention_mode == "ent_only":
+        if args.global_attention_mode == "ent_spans" or args.global_attention_mode == "ent_only":
 
-        train_file = '/root/thinh/cochrane/cochrane_mixed_train.csv'
-        dev_file = '/root/thinh/cochrane/cochrane_mixed_dev.csv'
-        test_file = '/root/thinh/cochrane/cochrane_pico_test.csv'
+            train_file = '/root/thinh/cochrane/cochrane_mixed_train.csv'
+            dev_file = '/root/thinh/cochrane/cochrane_mixed_dev.csv'
+            test_file = '/root/thinh/cochrane/cochrane_pico_test.csv'
 
-    else:
+        else:
 
-        train_file = '/root/thinh/cochrane/cochrane_pico_train_all.csv'
-        dev_file = '/root/thinh/cochrane/cochrane_pico_dev_all.csv'
-        test_file = '/root/thinh/cochrane/cochrane_pico_test.csv'
+            train_file = '/root/thinh/cochrane/cochrane_pico_train_all.csv'
+            dev_file = '/root/thinh/cochrane/cochrane_pico_dev_all.csv'
+            test_file = '/root/thinh/cochrane/cochrane_pico_test.csv'
 
-    hf_datasets = load_dataset('csv',
-        data_files ={'train': train_file, 'validation': dev_file, 'test': test_file},
-                                               delimiter=',')
-    train_dataloader = get_dataloader_summ(
-        args, hf_datasets, model.tokenizer, "train", 0, True
-        )
-    
-    print(len(train_dataloader))
+        hf_datasets = load_dataset('csv',
+            data_files ={'train': train_file, 'validation': dev_file, 'test': test_file},
+                                                delimiter=',')
+        train_dataloader = get_dataloader_summ(
+            args, hf_datasets, model.tokenizer, "train", 0, True
+            )
+        
 
-    valid_dataloader = get_dataloader_summ(
-        args, hf_datasets, model.tokenizer, "validation", 0, False
-        )
+        valid_dataloader = get_dataloader_summ(
+            args, hf_datasets, model.tokenizer, "validation", 0, False
+            )
 
     # pdb.set_trace()
     trainer.fit(model, train_dataloader, valid_dataloader)
@@ -609,7 +593,7 @@ def test(args):
     # load dataset
 
 
-    '''    if args.dataset_name in ["multi_news", "multi_x_science_sum"]:
+    if args.dataset_name in ["multi_news", "multi_x_science_sum"]:
 
         hf_datasets = load_dataset(args.dataset_name, cache_dir=args.data_path)
         test_dataloader = get_dataloader_summ(
@@ -634,27 +618,27 @@ def test(args):
         dataset = [json.loads(l) for l in all_lines]
         test_dataloader = get_dataloader_summ(
             args, dataset, model.tokenizer, "test", 0, False
-        )'''
+        )
+    elif args.dataet_name == "cochrane":
+        if args.global_attention_mode == "ent_spans" or args.global_attention_mode == "ent_only":
 
-    if args.global_attention_mode == "ent_spans" or args.global_attention_mode == "ent_only":
+            train_file = '/root/thinh/cochrane/cochrane_mixed_train.csv'
+            dev_file = '/root/thinh/cochrane/cochrane_mixed_dev.csv'
+            test_file = '/root/thinh/cochrane/cochrane_pico_test.csv'
 
-        train_file = '/root/thinh/cochrane/cochrane_mixed_train.csv'
-        dev_file = '/root/thinh/cochrane/cochrane_mixed_dev.csv'
-        test_file = '/root/thinh/cochrane/cochrane_pico_test.csv'
+        else:
 
-    else:
+            train_file = '/root/thinh/cochrane/cochrane_pico_train_all.csv'
+            dev_file = '/root/thinh/cochrane/cochrane_pico_dev_all.csv'
+            test_file = '/root/thinh/cochrane/cochrane_pico_test.csv'
 
-        train_file = '/root/thinh/cochrane/cochrane_pico_train_all.csv'
-        dev_file = '/root/thinh/cochrane/cochrane_pico_dev_all.csv'
-        test_file = '/root/thinh/cochrane/cochrane_pico_test.csv'
-
-    hf_datasets = load_dataset('csv',
-        data_files ={'train': train_file, 'validation': dev_file, 'test': test_file},
-                                               delimiter=',')
+        hf_datasets = load_dataset('csv',
+            data_files ={'train': train_file, 'validation': dev_file, 'test': test_file},
+                                                delimiter=',')
 
 
 
-    test_dataloader = get_dataloader_summ(args, hf_datasets, model.tokenizer, "test", 0, False)
+        test_dataloader = get_dataloader_summ(args, hf_datasets, model.tokenizer, "test", 0, False)
      # test
     trainer.test(model, test_dataloader)
 
@@ -667,7 +651,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
     ########################
-    # Gneral
+    # General
     parser.add_argument("--gpus", default=0, type=int, help="number of gpus to use")
     parser.add_argument(
         "--accelerator", default=None, type=str, help="Type of accelerator"
@@ -688,6 +672,7 @@ if __name__ == "__main__":
         action="store_true",
         help="whether to compute rouge in validation steps",
     )
+    
     parser.add_argument(
         "--saveRouge",
         action="store_true",
@@ -776,6 +761,11 @@ if __name__ == "__main__":
     parser.add_argument(
         "--test_imediate", action="store_true", help="test on the best checkpoint",
     )
+    
+    parser.add_argument(
+        "--use_pico", action="store_true", help="whether to include pico information (only for cochrane dataset)",
+    )
+
     parser.add_argument(
         "--fewshot",
         action="store_true",
