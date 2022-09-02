@@ -1,9 +1,9 @@
-DATA_NAME="wallace"
+DATA_NAME="cochrane"
 
 GLOBAL_ATTENTION_MODE="ent_spans"
 
 # original PRIMER model
-MODEL_NAME="PRIMER_wallace_fewshot100_pico_"$GLOBAL_ATTENTION_MODE
+MODEL_NAME="PRIMER_cochrane_fewshot100_pico_"$GLOBAL_ATTENTION_MODE
 MODEL_PATH="allenai/PRIMERA"
 CKPT_PATH="/root/thinh/PRIMER/checkpoints/"
 DATA_PATH="/home/yuliao/RCT-summarization-data/"

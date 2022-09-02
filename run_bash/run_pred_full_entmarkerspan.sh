@@ -1,10 +1,10 @@
-DATA_NAME="wallace"
+DATA_NAME="cochrane"
 GLOBAL_ATTENTION_MODE='ent_markers_spans'
 
 TORCH_DISTRIBUTED_DEBUG=DETAIL
 
 # original PRIMER model
-MODEL_NAME="PRIMER_wallace_full_pico_"$GLOBAL_ATTENTION_MODE"_last3"
+MODEL_NAME="PRIMER_cochrane_full_pico_"$GLOBAL_ATTENTION_MODE"_last3"
 MODEL_PATH="allenai/PRIMERA"
 CKPT_PATH="/root/thinh/PRIMER/checkpoints"
 DATA_PATH="/home/yuliao/RCT-summarization-data/"

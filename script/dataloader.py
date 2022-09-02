@@ -130,7 +130,7 @@ class SummarizationDataset(Dataset):
                 tgt, truncation=True, max_length=self.max_output_len
             )
         else:  # multi-doc setting
-            if self.dataset_name == "wallace":
+            if self.dataset_name == "cochrane":
                 all_docs = entry["document"].split("|||||")
                 # check_ent_tag(doc)
                 for i, doc in enumerate(all_docs):

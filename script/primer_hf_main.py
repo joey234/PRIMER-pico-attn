@@ -17,7 +17,7 @@ from transformers import (
     LEDConfig,
     LEDForConditionalGeneration,
 )
-from dataloader_bk import (
+from dataloader import (
     get_dataloader_summ,
     get_dataloader_summiter,
 )
@@ -66,9 +66,12 @@ class PRIMERSummarizer(pl.LightningModule):
         if args.use_pico:
             self.tokenizer.add_special_tokens({'additional_special_tokens': ["<doc-sep>", "<ent>", "</ent>"]})
             self.ent_start_id, self.ent_end_id = self.tokenizer.convert_tokens_to_ids(["<ent>", "</ent>"])
+            self.docsep_token_id = self.tokenizer.convert_tokens_to_ids("<doc-sep>")
+
         else:
             self.tokenizer.add_special_tokens({'additional_special_tokens': ["<doc-sep>"]})
             self.docsep_token_id = self.tokenizer.convert_tokens_to_ids("<doc-sep>")
+
 
         self.model = LEDForConditionalGeneration.from_pretrained(args.primer_path)
         self.model.resize_token_embeddings(len(self.tokenizer))
@@ -530,15 +533,14 @@ def train(args):
 
         if args.global_attention_mode == "ent_spans" or args.global_attention_mode == "ent_only":
 
-            train_file = '/root/thinh/cochrane/cochrane_mixed_train.csv'
-            dev_file = '/root/thinh/cochrane/cochrane_mixed_dev.csv'
-            test_file = '/root/thinh/cochrane/cochrane_pico_test.csv'
+            train_file = '../cochrane/cochrane_mixed_train.csv'
+            dev_file = '../cochrane/cochrane_mixed_dev.csv'
+            test_file = '../cochrane/cochrane_pico_test.csv'
 
         else:
-
-            train_file = '/root/thinh/cochrane/cochrane_pico_train_all.csv'
-            dev_file = '/root/thinh/cochrane/cochrane_pico_dev_all.csv'
-            test_file = '/root/thinh/cochrane/cochrane_pico_test.csv'
+            train_file = '../cochrane/cochrane_pico_train_all.csv'
+            dev_file = '../cochrane/cochrane_pico_dev_all.csv'
+            test_file = '../cochrane/cochrane_pico_test.csv'
 
         hf_datasets = load_dataset('csv',
             data_files ={'train': train_file, 'validation': dev_file, 'test': test_file},
@@ -547,11 +549,10 @@ def train(args):
             args, hf_datasets, model.tokenizer, "train", 0, True
             )
         
-
         valid_dataloader = get_dataloader_summ(
             args, hf_datasets, model.tokenizer, "validation", 0, False
             )
-
+        print(train_dataloader)
     # pdb.set_trace()
     trainer.fit(model, train_dataloader, valid_dataloader)
     if args.test_imediate:
@@ -622,15 +623,15 @@ def test(args):
     elif args.dataet_name == "cochrane":
         if args.global_attention_mode == "ent_spans" or args.global_attention_mode == "ent_only":
 
-            train_file = '/root/thinh/cochrane/cochrane_mixed_train.csv'
-            dev_file = '/root/thinh/cochrane/cochrane_mixed_dev.csv'
-            test_file = '/root/thinh/cochrane/cochrane_pico_test.csv'
+            train_file = '../cochrane/cochrane_mixed_train.csv'
+            dev_file = '../cochrane/cochrane_mixed_dev.csv'
+            test_file = '../cochrane/cochrane_pico_test.csv'
 
         else:
 
-            train_file = '/root/thinh/cochrane/cochrane_pico_train_all.csv'
-            dev_file = '/root/thinh/cochrane/cochrane_pico_dev_all.csv'
-            test_file = '/root/thinh/cochrane/cochrane_pico_test.csv'
+            train_file = '../cochrane/cochrane_pico_train_all.csv'
+            dev_file = '../cochrane/cochrane_pico_dev_all.csv'
+            test_file = '../cochrane/cochrane_pico_test.csv'
 
         hf_datasets = load_dataset('csv',
             data_files ={'train': train_file, 'validation': dev_file, 'test': test_file},

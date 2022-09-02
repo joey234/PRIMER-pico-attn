@@ -1,10 +1,10 @@
 # Wallace dataset
-DATA_NAME="wallace"
+DATA_NAME="cochrane"
 
 GLOBAL_ATTENTION_MODE="ent_markers_spans"
 
 # original PRIMER model
-MODEL_NAME="PRIMER_wallace_fewshot100_pico_"$GLOBAL_ATTENTION_MODE"_last3"
+MODEL_NAME="PRIMER_cochrane_fewshot100_pico_"$GLOBAL_ATTENTION_MODE"_last3"
 MODEL_PATH="allenai/PRIMERA"
 CKPT_PATH="/root/thinh/PRIMER/checkpoints/"
 DATA_PATH="/home/yuliao/RCT-summarization-data/"
@@ -17,8 +17,9 @@ RAND_SEED=1111
 NUM_TRAIN_DATA=100
 SAVE_DIR="/root/thinh/PRIMER/fewshot100_pico_"$GLOBAL_ATTENTION_MODE"_last3"
 
-CUDA_VISIBLE_DEVICES=2 python /root/thinh/PRIMER/script/primer_hf_thinh_main.py  \
+python ../script/primer_hf_main.py  \
                 --gpus 1 \
+                --accelerator dp \
                 --mode train \
                 --lr 3e-5 \
                 --label_smoothing 0.1 \
@@ -42,7 +43,7 @@ CUDA_VISIBLE_DEVICES=2 python /root/thinh/PRIMER/script/primer_hf_thinh_main.py 
 		--num_train_data $NUM_TRAIN_DATA \
 		--fewshot \
                 --global_attention_mode $GLOBAL_ATTENTION_MODE \
-                --select_last_k 3 
+                --use_pico
 	# > ../fewshot_${DATA_NAME}_${MODEL_NAME}_${RAND_SEED}.out &
 
 #done
