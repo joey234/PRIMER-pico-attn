@@ -1,6 +1,8 @@
 # PRIMER-pico-attn
 Code for the paper ``LED down the rabbit hole: exploring the potential of global attention for biomedical multi-document summarisation`` (SDP Workshop at COLING 2022).
 
+# Data
+Please download and decompress the cochrane data first: https://drive.google.com/file/d/14mcA_bN1TpGPZKv_REirL99cd3FlRO9I/view?usp=sharing
 
 
 # Run script
