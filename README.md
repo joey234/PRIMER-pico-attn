@@ -14,12 +14,12 @@ Specify using GLOBAL_ATTENTION_MODE variable in the run script (choose from `doc
 
 ## Example run script
 
-	DATA_NAME="wallace"
+	DATA_NAME="cochrane"
 	GLOBAL_ATTENTION_MODE="ent_markers_spans"
-	MODEL_NAME="PRIMER_wallace_fewshot10_pico_"$GLOBAL_ATTENTION_MODE
+	MODEL_NAME="PRIMER_cochrane_fewshot10_pico_"$GLOBAL_ATTENTION_MODE
 	MODEL_PATH="allenai/PRIMERA"
 	CKPT_PATH="checkpoints/"
-	DATA_PATH="RCT-summarization-data/"
+	DATA_PATH="cochrane/"
 	RAND_SEED=1111
 	NUM_TRAIN_DATA=10
 	SAVE_DIR="fewshot10_pico_"$GLOBAL_ATTENTION_MODE
